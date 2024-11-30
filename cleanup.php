@@ -16,15 +16,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // 2. Delete all files in the uploads directory
             $uploadFolder = "uploads/";
-            $files = glob($uploadFolder . '*'); // Get all files in the uploads folder
-            foreach ($files as $file) {
-                if (is_file($file)) {
-                    unlink($file); // Delete the file
+            $thumbFolder = "uploads/thumbnails/";
+
+            // Helper function to delete files in a folder
+            function deleteFilesInFolder($folder) {
+                $files = glob($folder . '*'); // Get all files in the folder
+                foreach ($files as $file) {
+                    if (is_file($file)) {
+                        unlink($file); // Delete the file
+                    }
                 }
             }
 
+            // Delete files in uploads and thumbnails
+            deleteFilesInFolder($uploadFolder);
+            deleteFilesInFolder($thumbFolder);
+
             // Success message
-            $successMessage = "All messages and uploaded files have been successfully deleted.";
+            $successMessage = "All messages, uploaded files, and thumbnails have been successfully deleted.";
         } catch (Exception $e) {
             $errorMessage = "An error occurred: " . $e->getMessage();
         }
@@ -91,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <div class="container">
         <h1>Admin Cleanup</h1>
-        <p>Enter the admin password to delete all chat messages and uploaded files.</p>
+        <p>Enter the admin password to delete all chat messages and uploaded files, including thumbnails.</p>
         <form method="post" action="">
             <input type="password" name="password" placeholder="Admin Password" required>
             <button type="submit">Perform Cleanup</button>
