@@ -227,6 +227,17 @@ $messages = $db->query("SELECT m.*, u.username FROM messages m JOIN users u ON m
         modal.style.display = "none";
         modalImage.src = ""; // Reset the image source
     }
+
+         // Send message on "Enter" key press
+    const messageInput = document.querySelector('textarea[name="message"]');
+    const form = messageInput.closest('form'); // Get the parent form element
+
+    messageInput.addEventListener('keypress', function (event) {
+        if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault(); // Prevent adding a new line
+            form.submit(); // Submit the form
+        }
+    });
     
 </script>
 </body>
