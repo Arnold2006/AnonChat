@@ -74,13 +74,12 @@ function createThumbnail($source, $destination, $width) {
     imagedestroy($thumbnail);
 }
 
-
-// Handle messages and image uploads
+// Handle messages and uploads (images, .zip, and .7z files)
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $message = $_POST['message'] ?? '';
-    $uploadedImages = [];
+    $uploadedFiles = [];
 
-    if (!empty($_FILES['images']['name'][0])) {
+    if (!empty($_FILES['files']['name'][0])) {
         $targetDir = "uploads/";
         $thumbnailDir = $targetDir . "thumbnails/";
 
@@ -88,29 +87,45 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if (!is_dir($targetDir)) mkdir($targetDir, 0755, true);
         if (!is_dir($thumbnailDir)) mkdir($thumbnailDir, 0755, true);
 
-        foreach ($_FILES['images']['name'] as $key => $imageName) {
-            $imagePath = $targetDir . basename($imageName);
-            $thumbnailPath = $thumbnailDir . basename($imageName);
+        foreach ($_FILES['files']['name'] as $key => $fileName) {
+            $filePath = $targetDir . basename($fileName);
+            $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
 
-            // Move the uploaded file to the uploads directory
-            if (move_uploaded_file($_FILES['images']['tmp_name'][$key], $imagePath)) {
-                $uploadedImages[] = $imagePath;
+            // Validate file type
+            $allowedImageExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+            $allowedArchiveExtensions = ['zip', '7z'];
 
-                // Create a thumbnail
-                createThumbnail($imagePath, $thumbnailPath, 200); // Thumbnail width = 200px
+            if (in_array($fileExtension, $allowedImageExtensions)) {
+                // Process as an image
+                if (move_uploaded_file($_FILES['files']['tmp_name'][$key], $filePath)) {
+                    $uploadedFiles[] = $filePath;
+
+                    // Create a thumbnail for the image
+                    $thumbnailPath = $thumbnailDir . basename($fileName);
+                    createThumbnail($filePath, $thumbnailPath, 200);
+                } else {
+                    die("Failed to upload file: $fileName");
+                }
+            } elseif (in_array($fileExtension, $allowedArchiveExtensions)) {
+                // Process as a ZIP or .7z file
+                if (move_uploaded_file($_FILES['files']['tmp_name'][$key], $filePath)) {
+                    $uploadedFiles[] = $filePath; // Store the file path for display
+                } else {
+                    die("Failed to upload archive: $fileName");
+                }
             } else {
-                die("Failed to upload file: $imageName");
+                die("Unsupported file type: $fileName");
             }
         }
     }
 
-    // Save message and uploaded image paths to the database
+    // Save message and uploaded file paths to the database
     $stmt = $db->prepare("INSERT INTO messages (user_id, message, image_path) VALUES (?, ?, ?)");
-    if (empty($uploadedImages)) {
+    if (empty($uploadedFiles)) {
         $stmt->execute([$_SESSION['user_id'], $message, null]);
     } else {
-        foreach ($uploadedImages as $imagePath) {
-            $stmt->execute([$_SESSION['user_id'], $message, $imagePath]);
+        foreach ($uploadedFiles as $filePath) {
+            $stmt->execute([$_SESSION['user_id'], $message, $filePath]);
         }
     }
 }
@@ -153,18 +168,26 @@ $messages = $db->query("SELECT m.*, u.username FROM messages m JOIN users u ON m
                     <div class="message">
                         <strong><?= htmlspecialchars($row['username']) ?>:</strong> <?= htmlspecialchars($row['message']) ?><br>
                         <?php if ($row['image_path']): ?>
-                            <img src="<?= htmlspecialchars('uploads/thumbnails/' . basename($row['image_path'])) ?>" alt="Image Thumbnail" onclick="openModal('<?= htmlspecialchars($row['image_path']) ?>')">
-                            <a href="<?= htmlspecialchars($row['image_path']) ?>" download class="download-icon">Download</a>
+                            <?php $fileExtension = strtolower(pathinfo($row['image_path'], PATHINFO_EXTENSION)); ?>
+                            <?php if (in_array($fileExtension, ['jpg', 'jpeg', 'png', 'gif'])): ?>
+                                <!-- Display thumbnail for images -->
+                                <img src="<?= htmlspecialchars('uploads/thumbnails/' . basename($row['image_path'])) ?>" alt="Image Thumbnail" onclick="openModal('<?= htmlspecialchars($row['image_path']) ?>')">
+                                <a href="<?= htmlspecialchars($row['image_path']) ?>" download class="download-icon">Download</a>
+                            <?php elseif (in_array($fileExtension, ['zip', '7z'])): ?>
+                                <!-- Display download link for archives -->
+                                <a href="<?= htmlspecialchars($row['image_path']) ?>" download class="download-icon">Download <?= strtoupper($fileExtension) ?> File</a>
+                            <?php endif; ?>
                         <?php endif; ?>
                     </div>
                 <?php endforeach; ?>
             </div>
-
+            
             <form method="post" enctype="multipart/form-data">
                 <textarea name="message" rows="3" placeholder="Enter your message" required></textarea>
-                <input type="file" name="images[]" multiple>
+                <input type="file" name="files[]" multiple>
                 <button type="submit">Send</button>
-            </form>
+            </form> 
+            
         </div>
     </div>
 
@@ -186,31 +209,21 @@ $messages = $db->query("SELECT m.*, u.username FROM messages m JOIN users u ON m
     }, 3000);
 
     // Open image in modal
-function openModal(imageSrc) {
-    const modal = document.getElementById("imageModal");
-    const modalImage = document.getElementById("modal-image");
-    modal.style.display = "flex";
-    modalImage.src = imageSrc;
-}
+    function openModal(imageSrc) {
+        const modal = document.getElementById("imageModal");
+        const modalImage = document.getElementById("modal-image");
+        modal.style.display = "flex";
+        modalImage.src = imageSrc;
+    }
 
-// Close image modal and reset the image source
-function closeModal() {
-    const modal = document.getElementById("imageModal");
-    const modalImage = document.getElementById("modal-image");
-    modal.style.display = "none";
-    modalImage.src = ""; // Reset the image source to clear the modal memory
-}
-
-    // Send message on "Enter" key press
-    const messageInput = document.querySelector('textarea[name="message"]');
-    const form = messageInput.closest('form'); // Get the parent form element
-
-    messageInput.addEventListener('keypress', function (event) {
-        if (event.key === "Enter" && !event.shiftKey) {
-            event.preventDefault(); // Prevent adding a new line
-            form.submit(); // Submit the form
-        }
-    });
+    // Close image modal
+    function closeModal() {
+        const modal = document.getElementById("imageModal");
+        const modalImage = document.getElementById("modal-image");
+        modal.style.display = "none";
+        modalImage.src = ""; // Reset the image source
+    }
+    
 </script>
 </body>
 </html>
