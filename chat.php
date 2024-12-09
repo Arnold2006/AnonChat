@@ -174,8 +174,12 @@ $messages = $db->query("SELECT m.*, u.username FROM messages m JOIN users u ON m
                                 <img src="<?= htmlspecialchars('uploads/thumbnails/' . basename($row['image_path'])) ?>" alt="Image Thumbnail" onclick="openModal('<?= htmlspecialchars($row['image_path']) ?>')">
                                 <a href="<?= htmlspecialchars($row['image_path']) ?>" download class="download-icon">Download</a>
                             <?php elseif (in_array($fileExtension, ['zip', '7z'])): ?>
-                                <!-- Display download link for archives -->
-                                <a href="<?= htmlspecialchars($row['image_path']) ?>" download class="download-icon">Download <?= strtoupper($fileExtension) ?> File</a>
+                            
+                             <!-- Display download link for archives with the filename -->
+                                 <a href="<?= htmlspecialchars($row['image_path']) ?>" download class="download-icon">
+                                       Download <?= htmlspecialchars(basename($row['image_path'])) ?>
+                                </a>
+                            
                             <?php endif; ?>
                         <?php endif; ?>
                     </div>
