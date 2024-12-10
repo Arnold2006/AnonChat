@@ -101,13 +101,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if (!is_dir($targetDir)) mkdir($targetDir, 0755, true);
         if (!is_dir($thumbnailDir)) mkdir($thumbnailDir, 0755, true);
 
+        // Define allowed file extensions
+        $allowedImageExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+
+        // Regular expression for archive extensions (zip, 7z, and multipart files like .001, .002, etc.)
+        $allowedArchivePattern = '/^(zip|7z|[0-9]{3})$/i';
+
         foreach ($_FILES['files']['name'] as $key => $fileName) {
             $filePath = $targetDir . basename($fileName);
             $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
-
-            // Define allowed file extensions
-            $allowedImageExtensions = ['jpg', 'jpeg', 'png', 'gif'];
-            $allowedArchiveExtensions = ['zip', '7z', '001', '002', '003', '004', '005', '006', '007', '008', '009', '010'];
 
             if (in_array($fileExtension, $allowedImageExtensions)) {
                 // Handle image uploads
@@ -120,8 +122,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 } else {
                     die("Failed to upload image file: $fileName");
                 }
-            } elseif (in_array($fileExtension, $allowedArchiveExtensions)) {
-                // Handle archive uploads (e.g., .7z, .zip)
+            } elseif (preg_match($allowedArchivePattern, $fileExtension)) {
+                // Handle archive uploads (e.g., .7z, .zip, .001, .002, etc.)
                 if (move_uploaded_file($_FILES['files']['tmp_name'][$key], $filePath)) {
                     $uploadedFiles[] = $filePath; // Save the file path
                 } else {
