@@ -182,33 +182,37 @@ $messages = $db->query("SELECT m.*, u.username FROM messages m JOIN users u ON m
                 <a href="cleanup.php" target="_blank" class="action-btn">Admin</a>
             </form>
 
-            <!-- Chat messages display -->
-            <div class="chat-box" id="chat-box">
-                <?php foreach ($messages as $row): ?>
-                    <div class="message">
-                        <strong><?= htmlspecialchars($row['username']) ?>:</strong> <?= htmlspecialchars($row['message']) ?><br>
-                        
-                        <?php if ($row['image_path']): ?>
-                            <?php $fileExtension = strtolower(pathinfo($row['image_path'], PATHINFO_EXTENSION)); ?>
-                            <?php if (in_array($fileExtension, ['jpg', 'jpeg', 'png', 'gif'])): ?>
-                                <img src="<?= htmlspecialchars('uploads/thumbnails/' . basename($row['image_path'])) ?>" alt="Image Thumbnail" onclick="openModal('<?= htmlspecialchars($row['image_path']) ?>')">
-                                <a href="<?= htmlspecialchars($row['image_path']) ?>" download class="download-icon">Download</a>
-                            <?php elseif (in_array($fileExtension, ['zip', '7z', '001', '002', '003', '004', '005', '006', '007', '008', '009', '010'])): ?>
-                                <a href="<?= htmlspecialchars($row['image_path']) ?>" download class="download-icon">Download <?= htmlspecialchars(basename($row['image_path'])) ?></a>
-                            <?php endif; ?>
-                        <?php endif; ?>
-                    </div>
-                <?php endforeach; ?>
-            </div>
+          <!-- Chat messages display -->
+<div class="chat-box" id="chat-box">
+    <?php foreach ($messages as $row): ?>
+        <div class="message">
+            <strong><?= htmlspecialchars($row['username']) ?>:</strong> <?= htmlspecialchars($row['message']) ?><br>
 
-            <!-- Message input and file upload form -->
-            <form method="post" enctype="multipart/form-data">
-                <textarea name="message" rows="3" placeholder="Enter your message" required></textarea>
-                <input type="file" name="files[]" multiple>
-                <button type="submit">Send</button>
-            </form>
+            <?php if ($row['image_path']): ?>
+                <?php 
+                $fileExtension = strtolower(pathinfo($row['image_path'], PATHINFO_EXTENSION));
+
+                // Display image files
+                if (in_array($fileExtension, ['jpg', 'jpeg', 'png', 'gif'])): ?>
+                    <img src="<?= htmlspecialchars('uploads/thumbnails/' . basename($row['image_path'])) ?>" alt="Image Thumbnail" onclick="openModal('<?= htmlspecialchars($row['image_path']) ?>')">
+                    <a href="<?= htmlspecialchars($row['image_path']) ?>" download class="download-icon">Download</a>
+
+                <?php 
+                // Display archive files using the regular expression for multipart files
+                elseif (preg_match('/^(zip|7z|[0-9]{3})$/i', $fileExtension)): ?>
+                    <a href="<?= htmlspecialchars($row['image_path']) ?>" download class="download-icon">Download <?= htmlspecialchars(basename($row['image_path'])) ?></a>
+                <?php endif; ?>
+            <?php endif; ?>
         </div>
-    </div>
+    <?php endforeach; ?>
+</div>
+
+<!-- Message input and file upload form -->
+<form method="post" enctype="multipart/form-data">
+    <textarea name="message" rows="3" placeholder="Enter your message" required></textarea>
+    <input type="file" name="files[]" multiple>
+    <button type="submit">Send</button>
+</form>
 
     <!-- Modal for image viewing -->
     <div id="imageModal" class="modal" onclick="closeModal()">
