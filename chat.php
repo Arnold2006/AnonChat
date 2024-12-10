@@ -107,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             // Define allowed file extensions
             $allowedImageExtensions = ['jpg', 'jpeg', 'png', 'gif'];
-            $allowedArchiveExtensions = ['zip', '7z', '001', '002', '003'];
+            $allowedArchiveExtensions = ['zip', '7z', '001', '002', '003', '004', '005', '006', '007', '008', '009', '010'];
 
             if (in_array($fileExtension, $allowedImageExtensions)) {
                 // Handle image uploads
@@ -174,27 +174,32 @@ $messages = $db->query("SELECT m.*, u.username FROM messages m JOIN users u ON m
         </div>
 
         <div class="chat-content">
+            <!-- Logout and Admin button -->
             <form method="post" class="button-form">
                 <button type="submit" name="logout" class="action-btn">Log out</button>
                 <a href="cleanup.php" target="_blank" class="action-btn">Admin</a>
             </form>
 
+            <!-- Chat messages display -->
             <div class="chat-box" id="chat-box">
                 <?php foreach ($messages as $row): ?>
                     <div class="message">
                         <strong><?= htmlspecialchars($row['username']) ?>:</strong> <?= htmlspecialchars($row['message']) ?><br>
+                        
                         <?php if ($row['image_path']): ?>
                             <?php $fileExtension = strtolower(pathinfo($row['image_path'], PATHINFO_EXTENSION)); ?>
                             <?php if (in_array($fileExtension, ['jpg', 'jpeg', 'png', 'gif'])): ?>
-                                <img src="<?= htmlspecialchars('uploads/thumbnails/' . basename($row['image_path'])) ?>" alt="Image Thumbnail">
-                            <?php elseif (in_array($fileExtension, ['zip', '7z'])): ?>
-                                <a href="<?= htmlspecialchars($row['image_path']) ?>" download>Download <?= htmlspecialchars(basename($row['image_path'])) ?></a>
+                                <img src="<?= htmlspecialchars('uploads/thumbnails/' . basename($row['image_path'])) ?>" alt="Image Thumbnail" onclick="openModal('<?= htmlspecialchars($row['image_path']) ?>')">
+                                <a href="<?= htmlspecialchars($row['image_path']) ?>" download class="download-icon">Download</a>
+                            <?php elseif (in_array($fileExtension, ['zip', '7z', '001', '002', '003', '004', '005', '006', '007', '008', '009', '010'])): ?>
+                                <a href="<?= htmlspecialchars($row['image_path']) ?>" download class="download-icon">Download <?= htmlspecialchars(basename($row['image_path'])) ?></a>
                             <?php endif; ?>
                         <?php endif; ?>
                     </div>
                 <?php endforeach; ?>
             </div>
 
+            <!-- Message input and file upload form -->
             <form method="post" enctype="multipart/form-data">
                 <textarea name="message" rows="3" placeholder="Enter your message" required></textarea>
                 <input type="file" name="files[]" multiple>
@@ -203,6 +208,11 @@ $messages = $db->query("SELECT m.*, u.username FROM messages m JOIN users u ON m
         </div>
     </div>
 
+    <!-- Modal for image viewing -->
+    <div id="imageModal" class="modal" onclick="closeModal()">
+        <img id="modal-image" src="" alt="Image">
+    </div>
+    
     <script>
         // Automatically refresh the chat box every 3 seconds
         setInterval(function () {
@@ -227,6 +237,17 @@ $messages = $db->query("SELECT m.*, u.username FROM messages m JOIN users u ON m
             const modal = document.getElementById("imageModal");
             modal.style.display = "none";
         }
+
+        // Send message on "Enter" key press
+        const messageInput = document.querySelector('textarea[name="message"]');
+        const form = messageInput.closest('form'); // Get the parent form element
+
+        messageInput.addEventListener('keypress', function (event) {
+            if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault(); // Prevent adding a new line
+                form.submit(); // Submit the form
+            }
+        });
     </script>
 </body>
 </html>
