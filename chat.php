@@ -241,7 +241,9 @@ $messages = $db->query("SELECT m.*, u.username FROM messages m JOIN users u ON m
 
         function closeModal() {
             const modal = document.getElementById("imageModal");
+            const modalImage = document.getElementById("modal-image");
             modal.style.display = "none";
+            modalImage.src = ""; // Clear the image source to avoid caching issues
         }
 
         // Send message on "Enter" key press
