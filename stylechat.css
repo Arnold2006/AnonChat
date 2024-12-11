@@ -5,8 +5,6 @@
     box-sizing: border-box;
 }
 
-
-
 /* Body styling */
 body {
     font-family: Arial, sans-serif;
@@ -21,8 +19,7 @@ body {
 /* Main container styling */
 .container {
     display: flex;
-    max-width: 1000px;
-    width: 700px;
+    width: 900px; /* Fixed container width */
     height: 700px;
     background-color: white;
     border-radius: 10px;
@@ -31,7 +28,7 @@ body {
 
 /* Sidebar with active users */
 .sidebar {
-    width: 25%;
+    width: 200px; /* Fixed width */
     background-color: #007bff;
     color: white;
     padding: 20px;
@@ -57,7 +54,7 @@ body {
 
 /* Chat content area */
 .chat-content {
-    flex-grow: 1;
+    width: 700px; /* Fixed width for the chat content */
     display: flex;
     flex-direction: column;
     padding: 20px;
