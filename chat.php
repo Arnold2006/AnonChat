@@ -220,6 +220,13 @@ $messages = $db->query("SELECT m.*, u.username FROM messages m JOIN users u ON m
     </div>
     
     <script>
+    
+        window.onload = function() {
+        // Focus on the message input box when the page loads
+            document.querySelector('textarea[name="message"]').focus();
+        };
+    
+    
         // Automatically refresh the chat box every 3 seconds
         setInterval(function () {
             fetch(location.href)
