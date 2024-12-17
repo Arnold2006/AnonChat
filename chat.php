@@ -207,10 +207,14 @@ $messages = $db->query("SELECT m.*, u.username FROM messages m JOIN users u ON m
     <?php endforeach; ?>
 </div>
 
+
 <!-- Message input and file upload form -->
-<form method="post" enctype="multipart/form-data">
-    <textarea name="message" rows="3" placeholder="Enter your message" required></textarea>
-    <input type="file" name="files[]" multiple>
+<form method="post" enctype="multipart/form-data" id="messageForm">
+    <div class="message-input-container" id="dropZone">
+        <textarea name="message" rows="3" placeholder="Enter your message (drag & drop files here)" required></textarea>
+        <input type="file" name="files[]" multiple id="fileInput" style="display: none;">
+        <div class="drop-zone-overlay" id="dropZoneOverlay">Drop files here</div>
+    </div>
     <button type="submit">Send</button>
 </form>
 
@@ -225,7 +229,6 @@ $messages = $db->query("SELECT m.*, u.username FROM messages m JOIN users u ON m
         // Focus on the message input box when the page loads
             document.querySelector('textarea[name="message"]').focus();
         };
-    
     
         // Automatically refresh the chat box every 3 seconds
         setInterval(function () {
@@ -263,6 +266,64 @@ $messages = $db->query("SELECT m.*, u.username FROM messages m JOIN users u ON m
                 form.submit(); // Submit the form
             }
         });
-    </script>
+
+            const dropZone = document.getElementById('dropZone');
+            const fileInput = document.getElementById('fileInput');
+            const dropZoneOverlay = document.getElementById('dropZoneOverlay');
+        
+            // Prevent default drag behaviors
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, preventDefaults, false);
+                document.body.addEventListener(eventName, preventDefaults, false);
+            });
+        
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        
+            // Highlight drop zone when dragging over it
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, highlight, false);
+            });
+        
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, unhighlight, false);
+            });
+        
+            function highlight(e) {
+                dropZone.classList.add('drag-over');
+            }
+        
+            function unhighlight(e) {
+                dropZone.classList.remove('drag-over');
+            }
+        
+            // Handle dropped files
+            dropZone.addEventListener('drop', handleDrop, false);
+        
+            function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            const textarea = dropZone.querySelector('textarea');
+            const currentText = textarea.value;
+            
+            // Update the file input with the dropped files
+            const dT = new DataTransfer();
+            for(let file of files) {
+                dT.items.add(file);
+            }
+            fileInput.files = dT.files;
+            
+            // Add file names to existing text
+            const fileNames = Array.from(files).map(file => file.name).join(', ');
+            if(fileNames) {
+                const fileText = `\nFiles attached: ${fileNames}`;
+                textarea.value = currentText + (currentText ? fileText : `Files attached: ${fileNames}`);
+            }
+        }
+
+</script>
+
 </body>
 </html>
