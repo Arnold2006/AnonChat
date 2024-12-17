@@ -214,3 +214,28 @@ button:hover {
         width: 100%;
     }
 }
+
+.message-input-container {
+    position: relative;
+    width: 100%;
+}
+
+.drop-zone-overlay {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    text-align: center;
+    padding-top: 20px;
+    border: 2px dashed white;
+    pointer-events: none;
+}
+
+.message-input-container.drag-over .drop-zone-overlay {
+    display: block;
+}
+
