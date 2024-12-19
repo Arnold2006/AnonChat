@@ -165,7 +165,8 @@ $messages = $db->query("SELECT m.*, u.username FROM messages m JOIN users u ON m
     <link rel="stylesheet" href="stylechat.css">
 </head>
 <body>
-    <div class="container">
+  
+      <div class="container">
         <div class="sidebar">
             <h2>Active Users</h2>
             <ul>
@@ -186,12 +187,14 @@ $messages = $db->query("SELECT m.*, u.username FROM messages m JOIN users u ON m
 <div class="chat-box" id="chat-box">
     <?php foreach ($messages as $row): ?>
         <div class="message">
-            <strong><?= htmlspecialchars($row['username']) ?>:</strong> <?= htmlspecialchars($row['message']) ?><br>
+            <strong><?= htmlspecialchars($row['username']) ?></strong>
+            <span class="timestamp"><?= date('H:i', strtotime($row['created_at'])) ?></span>: 
+            <?= htmlspecialchars($row['message']) ?><br>
 
             <?php if ($row['image_path']): ?>
                 <?php 
                 $fileExtension = strtolower(pathinfo($row['image_path'], PATHINFO_EXTENSION));
-
+                
                 // Display image files
                 if (in_array($fileExtension, ['jpg', 'jpeg', 'png', 'gif'])): ?>
                     <img src="<?= htmlspecialchars('uploads/thumbnails/' . basename($row['image_path'])) ?>" alt="Image Thumbnail" onclick="openModal('<?= htmlspecialchars($row['image_path']) ?>')">
@@ -229,7 +232,7 @@ $messages = $db->query("SELECT m.*, u.username FROM messages m JOIN users u ON m
         // Focus on the message input box when the page loads
             document.querySelector('textarea[name="message"]').focus();
         };
-    
+        
         // Automatically refresh the chat box every 3 seconds
         setInterval(function () {
             fetch(location.href)
