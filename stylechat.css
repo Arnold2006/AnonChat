@@ -77,7 +77,8 @@ body {
 }
 
 .message {
-    margin-bottom: 15px;
+    margin-bottom: 10px;
+    line-height: 1.4;
 }
 
 .message strong {
@@ -237,5 +238,18 @@ button:hover {
 
 .message-input-container.drag-over .drop-zone-overlay {
     display: block;
+}
+
+.message-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.timestamp {
+    font-size: 0.8em;
+    color: #666;
+    margin: 0 5px;
 }
 
